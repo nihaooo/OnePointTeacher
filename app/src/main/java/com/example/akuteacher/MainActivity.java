@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.ParseException;
@@ -26,9 +27,11 @@ import cn.bmob.v3.listener.FindListener;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
+    String number;
     private QRBeanAdapter mAdapter;
     private List<QRBean> mlist;
-    private static final String TAG = "MainActivity";
+    private TextView stunumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +44,11 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         mlist = new ArrayList<>();//数据源
-        mAdapter = new QRBeanAdapter(this,mlist);
+        mAdapter = new QRBeanAdapter(this, mlist);
         final ListView listList = (ListView) findViewById(R.id.lv_main);
         listList.setAdapter(mAdapter);
+        stunumber = (TextView) findViewById(R.id.tv_stunumber);
+
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -52,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 LayoutInflater inflate = LayoutInflater.from(MainActivity.this);
-                View viewDialog = inflate.inflate(R.layout.settime,null);
+                View viewDialog = inflate.inflate(R.layout.settime, null);
                 final EditText classname = (EditText) viewDialog.findViewById(R.id.et_class_name);
                 builder.setView(viewDialog);
                 builder.setTitle("查询");
@@ -62,23 +67,24 @@ public class MainActivity extends AppCompatActivity {
                         String rq_classname = classname.getText().toString();
                         findclassname(rq_classname);
                         listList.setAdapter(mAdapter);
-
                     }
                 });
-                builder.setNegativeButton("Cancel",null);
+                builder.setNegativeButton("Cancel", null);
                 builder.create().show();
             }
         });
     }
 
-    private void findclassname(String classname){
+    private void findclassname(String classname) {
         BmobQuery<QRBean> query = new BmobQuery<QRBean>();
-        query.addWhereEqualTo("studentclass",classname);
+        query.addWhereEqualTo("studentclass", classname);
         query.setLimit(100);
         query.findObjects(this, new FindListener<QRBean>() {
             @Override
             public void onSuccess(List<QRBean> list) {
-                Toast.makeText(MainActivity.this, "查询成功,数据数目为"+list.size(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "查询成功,数据数目为" + list.size(), Toast.LENGTH_SHORT).show();
+                number = String.valueOf(list.size());
+                stunumber.setText(number);
                 mlist.clear();
                 mlist.addAll(list);//添加进数据源
                 mAdapter.notifyDataSetChanged();
@@ -102,10 +108,10 @@ public class MainActivity extends AppCompatActivity {
         Date date = null;
         try {
             date = sdf.parse(start);
-        }catch (ParseException e) {
+        } catch (ParseException e) {
             e.printStackTrace();
         }
-        q1.addWhereGreaterThanOrEqualTo("createdAt",new BmobDate(date));
+        q1.addWhereGreaterThanOrEqualTo("createdAt", new BmobDate(date));
         and.add(q1);
 
         //小于23:59:59
@@ -113,20 +119,20 @@ public class MainActivity extends AppCompatActivity {
         String end = rq_date + " 23:59:59";//"2015-05-01 23:59:59"
         SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date1 = null;
-        try{
+        try {
             date1 = sdf1.parse(end);
-        }catch (ParseException e) {
+        } catch (ParseException e) {
             e.printStackTrace();
         }
-        q2.addWhereGreaterThanOrEqualTo("createdAt",new BmobDate(date1));
+        q2.addWhereGreaterThanOrEqualTo("createdAt", new BmobDate(date1));
         and.add(q2);
         //添加复合与查询
         query.and(and);
-        query.findObjects(this,new FindListener<QRBean>(){
+        query.findObjects(this, new FindListener<QRBean>() {
 
             @Override
             public void onSuccess(List<QRBean> list) {
-                Toast.makeText(MainActivity.this, "查询成功人数:"+list.size(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "查询成功人数:" + list.size(), Toast.LENGTH_SHORT).show();
             }
 
             @Override
